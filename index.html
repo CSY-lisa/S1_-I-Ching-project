@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易經銅錢卦占卜</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* 中式水墨主題（依據參考圖） */
+            --bg-color: #e6dfcd;
+            /* 宣紙底色 */
+            --text-color: #2c3032;
+            /* 墨黑 */
+            --highlight-color: #c96a25;
+            /* 朱砂/橘銅色 */
+            --panel-bg: rgba(235, 229, 215, 0.85);
+            /* 淺墨背景(增加不透明度以利閱讀) */
+            --border-color: rgba(44, 48, 50, 0.2);
+            /* 淡墨框線 */
+        }
+
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: var(--bg-color);
+            /* 加上一層半透明的宣紙色遮罩，讓水墨背景淡化退居幕後 */
+            background-image: linear-gradient(rgba(230, 223, 205, 0.65), rgba(230, 223, 205, 0.65)), url('./bg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 標題與重要文字使用粗體書法/碑帖字體 */
+        h1,
+        h3,
+        .toss-status,
+        #hex-title {
+            font-family: 'Weibei TC', 'Weibei SC', 'LiSu', 'Xingkai TC', 'STXingkai', 'Kaiti TC', 'BiauKai', 'DFKai-SB', 'Noto Serif TC', serif;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            color: var(--text-color);
+            font-weight: 400;
+        }
+
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-family: 'Noto Serif TC', serif;
+            font-size: 1rem;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: 1px solid var(--highlight-color);
+        }
+
+        .btn {
+            background-color: transparent;
+            color: var(--highlight-color);
+            border: 2px solid var(--highlight-color);
+            padding: 12px 24px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: 'Weibei TC', 'Weibei SC', 'LiSu', 'Xingkai TC', 'STXingkai', 'Kaiti TC', 'BiauKai', 'DFKai-SB', 'Noto Serif TC', serif;
+            transition: all 0.2s;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .btn:hover {
+            background-color: var(--highlight-color);
+            color: var(--bg-color);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Toss Area */
+        #toss-area,
+        #result-area {
+            display: none;
+        }
+
+        .toss-status {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--highlight-color);
+            margin: 20px 0;
+            height: 30px;
+        }
+
+        /* 獨立動畫頁面疊加層 */
+        #ritual-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #1a1a1a;
+            background-image: linear-gradient(rgba(20, 20, 18, 0.4), rgba(20, 20, 18, 0.4)), url('./bg_toss.png');
+            background-size: cover;
+            background-position: center;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s;
+        }
+
+        #ritual-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .ritual-coins {
+            display: flex;
+            gap: 40px;
+            perspective: 1200px;
+        }
+
+        .ritual-coin-wrapper {
+            width: 120px;
+            height: 120px;
+            transform: translateY(15vh);
+        }
+
+        .ritual-coin {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .coin-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 8px solid #5c4322;
+            background: radial-gradient(circle, #c4a777 40%, #9e7f4b 100%);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6), 0 10px 20px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+        }
+
+        .coin-face::after {
+            content: '';
+            width: 32px;
+            height: 32px;
+            background-color: #1a1a1a;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .coin-front {
+            transform: rotateX(0deg);
+        }
+
+        .coin-front::before {
+            content: '〰 〰';
+            position: absolute;
+            color: #4a361c;
+            font-weight: bold;
+            font-size: 1.6rem;
+            letter-spacing: 38px;
+            opacity: 0.8;
+        }
+
+        .coin-back {
+            transform: rotateX(180deg);
+        }
+
+        .coin-back::before {
+            content: '乾 隆';
+            position: absolute;
+            color: #4a361c;
+            font-size: 1.6rem;
+            font-weight: bold;
+            letter-spacing: 38px;
+            font-family: 'Weibei TC', serif;
+            opacity: 0.8;
+            transform: rotate(180deg);
+        }
+
+        @keyframes throwUp {
+            0% {
+                transform: translateY(15vh) scale(1);
+                animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+
+            40% {
+                transform: translateY(-35vh) scale(1.6);
+                animation-timing-function: cubic-bezier(0.8, 0, 0.8, 0.2);
+            }
+
+            70% {
+                transform: translateY(15vh) scale(1);
+                animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+
+            85% {
+                transform: translateY(0vh) scale(1.1);
+                animation-timing-function: cubic-bezier(0.8, 0, 0.8, 0.2);
+            }
+
+            100% {
+                transform: translateY(15vh) scale(1);
+            }
+        }
+
+        .tossing-anim {
+            animation: throwUp 1.5s forwards;
+        }
+
+        /* Hexagram Display */
+        .hexagram-container {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 10px;
+            margin: 30px 0;
+            align-items: center;
+        }
+
+        .line-item {
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .line-label {
+            font-size: 1rem;
+            color: #888;
+            width: 120px;
+            text-align: right;
+            margin-right: 20px;
+        }
+
+        .line-symbol {
+            font-family: monospace;
+            letter-spacing: -2px;
+        }
+
+        .change-mark {
+            font-size: 1rem;
+            color: var(--highlight-color);
+            border: 1px solid var(--highlight-color);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 15px;
+        }
+
+        .no-change-mark {
+            width: 24px;
+            height: 24px;
+            margin-left: 15px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .changing-line {
+            color: var(--highlight-color);
+            text-shadow: 0 0 8px rgba(201, 106, 37, 0.4);
+        }
+
+        /* Results Panel */
+        .result-panel {
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            display: none;
+            line-height: 1.6;
+        }
+
+        .unfold-animation {
+            display: block;
+            transform-origin: top center;
+            animation: unfoldBook 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+
+        @keyframes unfoldBook {
+            0% {
+                opacity: 0;
+                transform: scaleY(0);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scaleY(1);
+            }
+        }
+
+        .result-panel h3 {
+            margin-top: 0;
+            color: var(--highlight-color);
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .prompt-box {
+            position: relative;
+            background-color: rgba(235, 229, 215, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .prompt-content {
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            max-height: 300px;
+            overflow-y: auto;
+            color: var(--text-color);
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .subtext {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header style="justify-content: center;">
+            <h1>易經銅錢卦</h1>
+        </header>
+
+        <div id="setup-area" class="input-area">
+            <textarea id="question" placeholder="請在此輸入您想占卜的問題..."></textarea>
+            <button class="btn" onclick="startToss()">起卦</button>
+        </div>
+
+        <div id="toss-area">
+            <div id="toss-status" class="toss-status"></div>
+            <!-- 動畫已移至全螢幕疊加層 -->
+            <div id="hexagram-lines" class="hexagram-container"></div>
+        </div>
+
+        <div id="result-area">
+            <div id="hexagram-info" class="result-panel">
+                <h3 id="hex-title"></h3>
+                <p id="hex-desc"></p>
+                <div id="hex-changing"></div>
+            </div>
+
+            <div id="prompt-section" class="result-panel">
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    📋 複製提示詞，貼到你的 AI 解讀
+                    <button class="copy-btn" onclick="copyPrompt()">一鍵複製</button>
+                </h3>
+                <div class="prompt-box" onclick="copyPrompt()" style="cursor: pointer;" title="點擊即可複製">
+                    <div id="prompt-content" class="prompt-content"></div>
+                </div>
+                <p class="subtext">將上方提示詞貼到 Claude / ChatGPT / Gemini 即可獲得專業解讀（點擊區塊亦可複製）</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="reset()">重新起卦</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ritual-overlay">
+        <div class="ritual-coins">
+            <div class="ritual-coin-wrapper" id="rcw-1">
+                <div class="ritual-coin" id="rc-1">
+                    <div class="coin-face coin-front"></div>
+                    <div class="coin-face coin-back"></div>
+                </div>
+            </div>
+            <div class="ritual-coin-wrapper" id="rcw-2">
+                <div class="ritual-coin" id="rc-2">
+                    <div class="coin-face coin-front"></div>
+                    <div class="coin-face coin-back"></div>
+                </div>
+            </div>
+            <div class="ritual-coin-wrapper" id="rcw-3">
+                <div class="ritual-coin" id="rc-3">
+                    <div class="coin-face coin-front"></div>
+                    <div class="coin-face coin-back"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 易經真實資料 (卦名、卦辭、爻辭) -->
+    <script src="iching_data.js"></script>
+
+    <!-- 易經邏輯腳本 -->
+    <script>
+
+
+        // 輔助獲取完整卦資料
+        function getHexagramData(binaryStr) {
+            return hexagrams[binaryStr] || { 
+                name: "未知", 
+                up: "未知", 
+                down: "未知", 
+                desc: "無資料", 
+                lines: Array(6).fill("無資料") 
+            };
+        }
+
+        function getLineName(index, isYang) {
+            const num = isYang ? '九' : '六';
+            const pos = ['初', '二', '三', '四', '五', '上'][index];
+            if (index === 0) return '初' + num;
+            if (index === 5) return '上' + num;
+            return num + pos;
+        }
+
+        // Web Audio API
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playBowl() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 2);
+
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 2);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 2);
+        }
+
+        function playDing(pitchMultiplier = 1) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800 * pitchMultiplier, audioCtx.currentTime);
+
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1);
+        }
+
+        function playCoinDrop() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(1200 + Math.random() * 400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // 占卜邏輯
+        let tosses = [];
+
+        function startToss() {
+            const question = document.getElementById('question').value.trim();
+            if (!question) {
+                alert("請先輸入您的問題。");
+                return;
+            }
+
+            // 預先計算 6 爻結果
+            tosses = [];
+            for (let i = 0; i < 6; i++) {
+                const c1 = Math.random() < 0.5 ? 2 : 3;
+                const c2 = Math.random() < 0.5 ? 2 : 3;
+                const c3 = Math.random() < 0.5 ? 2 : 3;
+                tosses.push(c1 + c2 + c3);
+            }
+            // 利用第一爻的結果設定 3 枚實體銅錢的正反面 (2=陰, 3=陽)
+            let sum = tosses[0];
+            let firstFaces = [];
+            if (sum === 6) firstFaces = [2, 2, 2];
+            else if (sum === 7) firstFaces = [3, 2, 2];
+            else if (sum === 8) firstFaces = [3, 3, 2];
+            else if (sum === 9) firstFaces = [3, 3, 3];
+            firstFaces.sort(() => Math.random() - 0.5); // 打亂排列
+
+            document.getElementById('setup-area').style.display = 'none';
+            document.getElementById('toss-area').style.display = 'block';
+            document.getElementById('toss-status').textContent = "靜心，問卜天機…";
+            document.getElementById('hexagram-lines').innerHTML = ''; // 清除舊卦
+
+            playBowl(); // 頌缽聲
+            const overlay = document.getElementById('ritual-overlay');
+            overlay.classList.add('active');
+
+            // 重置銅錢旋轉
+            for (let c = 1; c <= 3; c++) {
+                const el = document.getElementById(`rc-${c}`);
+                el.style.transition = 'none';
+                el.style.transform = `rotateX(0deg) rotateY(0deg) rotateZ(0deg)`;
+            }
+
+            void document.getElementById('rc-1').offsetWidth; // 強制重繪
+
+            // 啟動 3D 物理拋擲
+            for (let c = 1; c <= 3; c++) {
+                const wrapper = document.getElementById(`rcw-${c}`);
+                const el = document.getElementById(`rc-${c}`);
+                wrapper.classList.remove('tossing-anim');
+                void wrapper.offsetWidth;
+
+                const delay = (c - 1) * 60; // 每枚稍微錯開，更有真實感
+                setTimeout(() => {
+                    wrapper.classList.add('tossing-anim');
+                    const isYang = firstFaces[c - 1] === 3;
+                    // 至少翻滾 4 圈，根據結果決定最後面朝上
+                    const spinX = 360 * (4 + Math.floor(Math.random() * 2)) + (isYang ? 180 : 0);
+                    const rY = (Math.random() - 0.5) * 60; // 輕微的 Y 軸隨機旋轉
+                    const rZ = (Math.random() - 0.5) * 60; // 輕微的 Z 軸隨機旋轉
+
+                    el.style.transition = 'transform 1.5s cubic-bezier(0.1, 0.85, 0.15, 1)';
+                    el.style.transform = `rotateX(${spinX}deg) rotateY(${rY}deg) rotateZ(${rZ}deg)`;
+                }, delay);
+            }
+
+            // 落地金屬音效 (與 keyframes 70% 和 100% 同步)
+            setTimeout(() => playCoinDrop(), 1050);
+            setTimeout(() => playCoinDrop(), 1110);
+            setTimeout(() => playCoinDrop(), 1170);
+            setTimeout(() => playCoinDrop(), 1500);
+
+            // 動畫結束，淡出並開始顯示卦象
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                setTimeout(() => displayLines(0, question), 400);
+            }, 2100);
+        }
+
+        function getLineInfo(sum) {
+            if (sum === 6) return { symbol: '×', type: 'yin', change: true, name: '老陰' };
+            if (sum === 7) return { symbol: '—', type: 'yang', change: false, name: '少陽' };
+            if (sum === 8) return { symbol: '--', type: 'yin', change: false, name: '少陰' };
+            if (sum === 9) return { symbol: '○', type: 'yang', change: true, name: '老陽' };
+        }
+
+        function displayLines(index, question) {
+            if (index >= 6) {
+                setTimeout(() => showResult(question), 800);
+                return;
+            }
+
+            const lineNum = index + 1;
+            document.getElementById('toss-status').textContent = `第${lineNum}爻，天機顯現`;
+
+            const info = getLineInfo(tosses[index]);
+            playDing(1 + index * 0.1);
+
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'line-item fade-in';
+            if (info.change) {
+                lineDiv.classList.add('changing-line');
+            }
+
+            // 繪製陰陽爻符號 (全形符號)
+            let drawSymbol = info.symbol === '—' || info.symbol === '○' ? '━━━━━' : '━━ ━━';
+
+            const labelStr = `<div class="line-label">第${lineNum}爻 · ${info.name}</div>`;
+            const changeMark = info.change ? `<div class="change-mark">動</div>` : `<div class="no-change-mark"></div>`;
+
+            lineDiv.innerHTML = `${labelStr}<div class="line-symbol">${drawSymbol}</div>${changeMark}`;
+
+            const container = document.getElementById('hexagram-lines');
+            container.append(lineDiv);
+
+            setTimeout(() => displayLines(index + 1, question), 500);
+        }
+
+        function showResult(question) {
+            document.getElementById('toss-status').textContent = "卦象已成，請細細觀之";
+
+            // 解析本卦與變卦
+            let origBinary = '';
+            let changedBinary = '';
+            let changingIndices = [];
+
+            for (let i = 0; i < 6; i++) {
+                const s = tosses[i];
+                if (s === 7 || s === 9) origBinary += '1'; else origBinary += '0';
+                if (s === 7 || s === 6) changedBinary += '1'; else changedBinary += '0';
+                if (s === 6 || s === 9) changingIndices.push(i);
+            }
+
+            const origData = getHexagramData(origBinary);
+            const changedData = getHexagramData(changedBinary);
+
+            document.getElementById('result-area').style.display = 'block';
+
+            const infoPanel = document.getElementById('hexagram-info');
+            const promptSection = document.getElementById('prompt-section');
+
+            infoPanel.classList.add('unfold-animation');
+            promptSection.classList.add('unfold-animation');
+            promptSection.style.animationDelay = "0.4s";
+
+            // 生成介面上的解讀總結
+            let summaryHtml = `<strong>本卦：</strong>第 ${origData.id} 卦 ${origData.name}（${origData.up}上${origData.down}下）<br>`;
+            summaryHtml += `<span style="color: #6d4c41;">卦辭：${origData.desc}</span><br><br>`;
+            summaryHtml += `<strong>變爻：</strong>${changingIndices.length} 個<br>`;
+            if (changingIndices.length > 0) {
+                summaryHtml += `<strong>變卦：</strong>第 ${changedData.id} 卦 ${changedData.name}（${changedData.up}上${changedData.down}下）<br>`;
+                summaryHtml += `<span style="color: #6d4c41;">卦辭：${changedData.desc}</span><br>`;
+            }
+
+            let guide = '';
+            if (changingIndices.length === 0) guide = '局勢穩定，無變動。請直接解讀「本卦」的卦辭與整體象意。';
+            else if (changingIndices.length === 1) guide = `請重點解讀第 ${changingIndices[0] + 1} 爻的爻辭，此為當前問題的核心指引。`;
+            else if (changingIndices.length === 2) guide = `請以位置較高的第 ${changingIndices[1] + 1} 爻為主，第 ${changingIndices[0] + 1} 爻為輔進行解讀。`;
+            else guide = '變動劇烈，本卦僅作背景參考，請重點轉向解讀「變卦」的卦辭。';
+
+            summaryHtml += `<br><strong>解讀重點：</strong>${guide}`;
+
+            document.getElementById('hex-title').innerHTML = `📌 卦象總結`;
+            document.getElementById('hex-desc').innerHTML = summaryHtml;
+
+            // 生成提示詞
+            const prompt = generatePromptText(question, origData, changedData, changingIndices);
+            document.getElementById('prompt-content').textContent = prompt;
+        }
+
+        function generatePromptText(question, origData, changedData, changingIndices) {
+            const changingCount = changingIndices.length;
+
+            let allLinesDetail = '';
+            const linePosNames = ['初', '二', '三', '四', '五', '上'];
+
+            // 提示詞中的爻象從上到下排列，方便閱讀 (6 -> 1)
+            for (let i = 5; i >= 0; i--) {
+                const info = getLineInfo(tosses[i]);
+                const isChange = info.change ? '【變爻】' : '';
+                allLinesDetail += `- ${linePosNames[i]}爻：${info.name}${info.symbol}　${isChange}\n`;
+            }
+
+            let changeText = '';
+            let changeValueText = '';
+            if (changingCount === 0) {
+                changeValueText = `0個`;
+                changeText = `變爻位置：無\n變爻爻辭：無`;
+            } else {
+                changeValueText = `${changingCount}個`;
+                const indicesText = changingIndices.map(i => i + 1).join(', ');
+                const namesText = changingIndices.map(i => getLineName(i, tosses[i] === 9)).join(', ');
+                let linesText = changingIndices.map(i => origData.lines[i]).join('\n');
+
+                changeText = `變爻位置：第${indicesText}爻（${namesText}）\n變爻爻辭：\n${linesText}`;
+            }
+
+            let interpretationGuide = '';
+            if (changingCount === 0) {
+                interpretationGuide = `局勢穩定，直接深入解讀本卦卦辭與整體象意。`;
+            } else if (changingCount === 1) {
+                const idx = changingIndices[0];
+                const lineVal = origData.lines[idx];
+                interpretationGuide = `重點解讀第${idx + 1}爻的爻辭「${lineVal}」，\n   說明這條爻在當前問題的具體指引，\n   這條爻的位置代表什麼階段或角色。`;
+            } else if (changingCount === 2) {
+                const idx1 = changingIndices[1];
+                const idx2 = changingIndices[0];
+                interpretationGuide = `以位置較高的第${idx1 + 1}爻為主要解讀，第${idx2 + 1}爻為輔助參考。`;
+            } else {
+                interpretationGuide = `整體局勢變動劇烈，重點轉向變卦，本卦爻辭僅作背景參考。`;
+            }
+
+            const changedName = changingCount === 0 ? '無' : `第 ${changedData.id} 卦 ${changedData.name}（${changedData.up}上${changedData.down}下）`;
+            const changedDesc = changingCount === 0 ? '無' : changedData.desc;
+
+            return `你是一位精通易經的占卜師，擅長以易經六十四卦解答人生問題。
+請根據以下起卦結果，給出深入且實用的解讀。
+
+【問題】
+${question}
+
+【起卦結果】
+本卦：第 ${origData.id} 卦 ${origData.name}（${origData.up}上${origData.down}下）
+卦辭：${origData.desc}
+
+六爻詳情（由下往上）：
+${allLinesDetail.trim()}
+
+變爻數量：${changeValueText}
+${changeText}
+
+變卦：${changedName}
+變卦卦辭：${changedDesc}
+
+【解讀指引】
+請依照以下順序進行解讀：
+
+1. **本卦總體象意**
+   先說明${origData.name}的核心象意與能量，結合問題背景說明當下的整體情勢。
+
+2. **變爻解讀**（最重要）
+   ${interpretationGuide}
+
+3. **變卦走向**（若有變卦）
+   說明從${origData.name}變為${changedData.name || '無'}的轉化意義，
+   這個變化對問題的走向有何啟示？是轉機、警示還是自然演變？
+
+4. **具體建議**
+   結合以上解讀，給出 3 條針對問題的具體行動建議，
+   語氣要務實，避免過於玄虛，讓人能實際執行。
+
+5. **注意事項**
+   若卦象中有需要特別警惕的訊號，請明確指出。
+
+請用繁體中文回答，語氣兼具古典韻味與現代實用性。`;
+        }
+
+        function copyPrompt() {
+            const contentElement = document.getElementById('prompt-content');
+            const content = contentElement.textContent;
+
+            // 選取文字讓使用者有視覺回饋
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(contentElement);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = '✅ 已複製';
+                btn.style.backgroundColor = '#4CAF50';
+                btn.style.color = '#fff';
+
+                setTimeout(() => {
+                    btn.textContent = '一鍵複製';
+                    btn.style.backgroundColor = 'var(--highlight-color)';
+                    btn.style.color = '#141210';
+                    selection.removeAllRanges();
+                }, 2000);
+            }).catch(err => {
+                alert('複製失敗，請手動選取複製');
+            });
+        }
+
+        function reset() {
+            document.getElementById('setup-area').style.display = 'flex';
+            document.getElementById('toss-area').style.display = 'none';
+            document.getElementById('result-area').style.display = 'none';
+            document.getElementById('hexagram-lines').innerHTML = '';
+            document.getElementById('question').value = '';
+
+            const infoPanel = document.getElementById('hexagram-info');
+            const promptSection = document.getElementById('prompt-section');
+            infoPanel.classList.remove('unfold-animation');
+            promptSection.classList.remove('unfold-animation');
+            promptSection.style.animationDelay = "0s";
+
+            tosses = [];
+        }
+
+    </script>
+</body>
+
+</html>
