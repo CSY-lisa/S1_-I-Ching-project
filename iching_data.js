@@ -208,3 +208,11 @@ ${adviceNumber}. **具體建議與注意事項**
 請用繁體中文回答，語氣兼具古典韻味與現代實用性。`;
     }
 };
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { baguaMap, hexNames, hexagrams, ichingPrompts };
+}
+
+if (typeof window !== 'undefined') {
+    window.IChingData = { baguaMap, hexNames, hexagrams, ichingPrompts };
+}

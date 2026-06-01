@@ -769,6 +769,7 @@
     </div>
 
     <script src="iching_data.js"></script>
+    <script src="iching_core.js"></script>
     <!-- 易經邏輯腳本 -->
     <script>
 
@@ -785,11 +786,7 @@
         }
 
         function getLineName(index, isYang) {
-            const num = isYang ? '九' : '六';
-            const pos = ['初', '二', '三', '四', '五', '上'][index];
-            if (index === 0) return '初' + num;
-            if (index === 5) return '上' + num;
-            return num + pos;
+            return IChingCore.getLineName(index, isYang);
         }
 
         // Web Audio API
@@ -861,8 +858,8 @@
         let questionText = "";
 
         function startMeditation() {
-            questionText = document.getElementById('question').value.trim();
-            if (!questionText) {
+            questionText = IChingCore.normalizeQuestion(document.getElementById('question').value);
+            if (!IChingCore.canStartQuestion(questionText)) {
                 alert("請先輸入您的問題。");
                 return;
             }
@@ -946,7 +943,7 @@
                     // If isYang, we want Front (0deg). But initial coin-front is rotateX(0deg).
                     // We spin it multiple times. If isYang, end at even multiples of 180 (0, 360). 
                     // If Yin, end at odd multiples (180, 540).
-                    const spinX = 360 * (4 + Math.floor(Math.random() * 2)) + (isYang ? 0 : 180);
+                    const spinX = IChingCore.getCoinSpinX(isYang, Math.floor(Math.random() * 2));
                     const rY = (Math.random() - 0.5) * 60;
                     const rZ = (Math.random() - 0.5) * 60;
 
@@ -980,10 +977,7 @@
         }
 
         function getLineInfo(sum) {
-            if (sum === 6) return { symbol: '×', type: 'yin', change: true, name: '老陰' };
-            if (sum === 7) return { symbol: '—', type: 'yang', change: false, name: '少陽' };
-            if (sum === 8) return { symbol: '--', type: 'yin', change: false, name: '少陰' };
-            if (sum === 9) return { symbol: '○', type: 'yang', change: true, name: '老陽' };
+            return IChingCore.getLineInfo(sum);
         }
 
         function displaySingleLine(index) {
@@ -996,7 +990,7 @@
             lineDiv.className = 'line-item fade-in';
             if (info.change) lineDiv.classList.add('changing-line');
 
-            let drawSymbol = info.symbol === '—' || info.symbol === '○' ? '━━━━━' : '━━ ━━';
+            let drawSymbol = IChingCore.getOriginalLineSymbol(tosses[index]);
             const labelStr = `<div class="line-label">第${lineNum}爻 · ${info.name}</div>`;
             const changeMark = info.change ? `<div class="change-mark">動</div>` : `<div class="no-change-mark"></div>`;
 
@@ -1007,23 +1001,14 @@
         function showResult(question) {
             document.getElementById('toss-status').textContent = "卦象已成，請細細觀之";
 
-            let origBinary = '';
-            let changedBinary = '';
-            let changingIndices = [];
-
-            for (let i = 0; i < 6; i++) {
-                const s = tosses[i];
-                if (s === 7 || s === 9) origBinary += '1'; else origBinary += '0';
-                if (s === 7 || s === 6) changedBinary += '1'; else changedBinary += '0';
-                if (s === 6 || s === 9) changingIndices.push(i);
-            }
+            const { origBinary, changedBinary, changingIndices } = IChingCore.deriveHexagramState(tosses);
 
             const origData = getHexagramData(origBinary);
             const changedData = getHexagramData(changedBinary);
             
             document.getElementById('orig-hex-label').style.opacity = '1';
 
-            if (changingIndices.length >= 3) {
+            if (IChingCore.shouldShowZhiGuaAnimation(changingIndices)) {
                 // 觸發太極轉化動畫
                 playZhiGuaAnimation(question, origData, changedData, changingIndices);
             } else {
@@ -1067,8 +1052,7 @@
             for (let i = 0; i < 6; i++) {
                 const s = tosses[i];
                 // 判斷之卦爻符號
-                let isYang = (s === 7 || s === 6);
-                let drawSymbol = isYang ? '━━━━━' : '━━ ━━';
+                let drawSymbol = IChingCore.getChangedLineSymbol(s);
                 let isChanged = changingIndices.includes(i);
                 
                 const lineDiv = document.createElement('div');
@@ -1117,33 +1101,14 @@
         }
 
         function generatePromptText(question, origData, changedData, changingIndices) {
-            const changingCount = changingIndices.length;
-
-            let allLinesDetail = '';
-            const linePosNames = ['初', '二', '三', '四', '五', '上'];
-
-            // 提示詞中的爻象從上到下排列，方便閱讀 (6 -> 1)
-            for (let i = 5; i >= 0; i--) {
-                const info = getLineInfo(tosses[i]);
-                const isChange = info.change ? '【變爻】' : '';
-                allLinesDetail += `- ${linePosNames[i]}爻：${info.name}${info.symbol}　${isChange}\n`;
-            }
-
-            let changeText = '';
-            let changeValueText = '';
-            if (changingCount === 0) {
-                changeValueText = `0個`;
-                changeText = `變爻位置：無\n變爻爻辭：無`;
-            } else {
-                changeValueText = `${changingCount}個`;
-                const indicesText = changingIndices.map(i => i + 1).join(', ');
-                const namesText = changingIndices.map(i => getLineName(i, tosses[i] === 9)).join(', ');
-                let linesText = changingIndices.map(i => origData.lines[i]).join('\n');
-
-                changeText = `變爻位置：第${indicesText}爻（${namesText}）\n變爻爻辭：\n${linesText}`;
-            }
-
-            return ichingPrompts.getPromptTemplate(question, origData, changedData, changingIndices, allLinesDetail, changeValueText, changeText);
+            return IChingCore.buildPromptText(
+                question,
+                tosses,
+                origData,
+                changedData,
+                changingIndices,
+                ichingPrompts.getPromptTemplate
+            );
         }
 
         function copyPrompt() {
@@ -1156,6 +1121,11 @@
             range.selectNodeContents(contentElement);
             selection.removeAllRanges();
             selection.addRange(range);
+
+            if (!IChingCore.canUseClipboard(navigator)) {
+                alert('複製失敗，請手動選取複製');
+                return;
+            }
 
             navigator.clipboard.writeText(content).then(() => {
                 const btn = document.querySelector('.copy-btn');
