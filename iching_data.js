@@ -143,7 +143,7 @@ const ichingPrompts = {
 
         interpretationGuide += '\n   （透過本卦洞察當下，之卦推測未來，加上變爻點出的轉折層次，金錢卦為決策者提供了動態而立體的視角。）';
 
-        const changedName = count === 0 ? '無' : `第 ${changedData["第幾卦"]} 卦 ${changedData.name}（${changedData.up}上${changedData.down}下）`;
+        const changedName = count === 0 ? '無' : `第 ${changedData["第幾卦"]} 卦 ${changedData.name}（下卦：${changedData.down}卦，上卦：${changedData.up}卦）`;
         const changedDesc = count === 0 ? '無' : changedData.desc;
         const targetChangedName = changedData && changedData.name ? changedData.name : '無';
 
@@ -165,7 +165,7 @@ const ichingPrompts = {
 ${question}
 
 【起卦結果】
-本卦：第 ${origData["第幾卦"]} 卦 ${origData.name}（${origData.up}上${origData.down}下）
+本卦：第 ${origData["第幾卦"]} 卦 ${origData.name}（下卦：${origData.down}卦，上卦：${origData.up}卦）
 卦辭：${origData.desc}
 
 六爻詳情（由下往上）：

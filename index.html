@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>易經銅錢卦占卜</title>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;600&display=swap"
-        rel="stylesheet">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'none'; font-src 'self'; upgrade-insecure-requests">
+    <meta name="referrer" content="no-referrer">
+    <title>易經金錢卦占卜</title>
     <style>
         :root {
             /* 中式水墨主題（依據參考圖） */
@@ -23,7 +24,7 @@
         }
 
         body {
-            font-family: 'Noto Serif TC', serif;
+            font-family: 'Songti TC', 'SimSun', 'PMingLiU', 'MingLiU', serif;
             background-color: var(--bg-color);
             /* 加上一層半透明的宣紙色遮罩，讓水墨背景淡化退居幕後 */
             background-image: linear-gradient(rgba(230, 223, 205, 0.65), rgba(230, 223, 205, 0.65)), url('./bg.png');
@@ -44,7 +45,7 @@
         h3,
         .toss-status,
         #hex-title {
-            font-family: 'Weibei TC', 'Weibei SC', 'LiSu', 'Xingkai TC', 'STXingkai', 'Kaiti TC', 'BiauKai', 'DFKai-SB', 'Noto Serif TC', serif;
+            font-family: 'Weibei TC', 'Weibei SC', 'LiSu', 'Xingkai TC', 'STXingkai', 'Kaiti TC', 'BiauKai', 'DFKai-SB', 'Songti TC', 'SimSun', serif;
             letter-spacing: 2px;
             font-weight: 700;
         }
@@ -83,7 +84,7 @@
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             color: var(--text-color);
-            font-family: 'Noto Serif TC', serif;
+            font-family: 'Songti TC', 'SimSun', 'PMingLiU', 'MingLiU', serif;
             font-size: 1rem;
             border-radius: 8px;
             resize: vertical;
@@ -104,7 +105,7 @@
             font-weight: 700;
             cursor: pointer;
             border-radius: 4px;
-            font-family: 'Weibei TC', 'Weibei SC', 'LiSu', 'Xingkai TC', 'STXingkai', 'Kaiti TC', 'BiauKai', 'DFKai-SB', 'Noto Serif TC', serif;
+            font-family: 'Weibei TC', 'Weibei SC', 'LiSu', 'Xingkai TC', 'STXingkai', 'Kaiti TC', 'BiauKai', 'DFKai-SB', 'Songti TC', 'SimSun', serif;
             transition: all 0.2s;
             text-align: center;
             letter-spacing: 2px;
@@ -120,7 +121,7 @@
             cursor: not-allowed;
         }
 
-        
+
         /* Rules Box */
         .rules-box {
             margin-top: 20px;
@@ -130,11 +131,13 @@
             border-radius: 8px;
             text-align: left;
         }
+
         .rules-box h4 {
             margin: 0 0 10px 0;
             color: var(--highlight-color);
             text-align: center;
         }
+
         .rules-box ul {
             margin: 0;
             padding-left: 20px;
@@ -142,9 +145,11 @@
             line-height: 1.6;
             color: var(--text-color);
         }
+
         .rules-box li {
             margin-bottom: 8px;
         }
+
         .rules-box strong {
             color: #8b4513;
         }
@@ -152,7 +157,10 @@
         /* Meditation Screen */
         #meditation-screen {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background-color: rgba(20, 20, 18, 0.95);
             z-index: 3000;
             display: flex;
@@ -163,10 +171,12 @@
             pointer-events: none;
             transition: opacity 1s;
         }
+
         #meditation-screen.active {
             opacity: 1;
             pointer-events: all;
         }
+
         .meditation-text {
             color: #e6dfcd;
             font-size: 1.8rem;
@@ -175,16 +185,29 @@
             text-align: center;
             line-height: 2;
         }
+
         .meditation-countdown {
             font-size: 3rem;
             color: var(--highlight-color);
             margin-top: 20px;
             animation: pulse 1s infinite;
         }
+
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         /* Update Coin CSS */
@@ -195,38 +218,86 @@
             align-items: center;
             justify-content: center;
         }
-        .coin-front::after { display: none; } /* hide square hole */
-        .coin-front::before { display: none; } /* hide old text */
-        
+
+        .coin-front::after {
+            display: none;
+        }
+
+        /* hide square hole */
+        .coin-front::before {
+            display: none;
+        }
+
+        /* hide old text */
+
         .clover {
             width: 48px;
             height: 48px;
             position: relative;
         }
+
         .clover-leaf {
             position: absolute;
             width: 24px;
             height: 24px;
             background-color: #5c4322;
         }
-        .clover-leaf:nth-child(1) { top: 0; left: 0; border-radius: 50% 50% 0 50%; }
-        .clover-leaf:nth-child(2) { top: 0; left: 24px; border-radius: 50% 50% 50% 0; }
-        .clover-leaf:nth-child(3) { top: 24px; left: 24px; border-radius: 0 50% 50% 50%; }
-        .clover-leaf:nth-child(4) { top: 24px; left: 0; border-radius: 50% 0 50% 50%; }
 
-        .coin-back::before { display: none; } /* hide old text */
+        .clover-leaf:nth-child(1) {
+            top: 0;
+            left: 0;
+            border-radius: 50% 50% 0 50%;
+        }
+
+        .clover-leaf:nth-child(2) {
+            top: 0;
+            left: 24px;
+            border-radius: 50% 50% 50% 0;
+        }
+
+        .clover-leaf:nth-child(3) {
+            top: 24px;
+            left: 24px;
+            border-radius: 0 50% 50% 50%;
+        }
+
+        .clover-leaf:nth-child(4) {
+            top: 24px;
+            left: 0;
+            border-radius: 50% 0 50% 50%;
+        }
+
+        .coin-back::before {
+            display: none;
+        }
+
+        /* hide old text */
         .coin-text {
             position: absolute;
             color: #4a361c;
             font-family: 'Weibei TC', serif;
             font-size: 1.2rem;
             font-weight: bold;
-            transform: rotate(180deg); /* because coin-back is rotated 180deg */
+            transform: rotate(180deg);
+            /* because coin-back is rotated 180deg */
         }
-        .coin-text.top { bottom: 10px; } /* flipped */
-        .coin-text.bottom { top: 10px; }
-        .coin-text.left { right: 10px; }
-        .coin-text.right { left: 10px; }
+
+        .coin-text.top {
+            bottom: 10px;
+        }
+
+        /* flipped */
+        .coin-text.bottom {
+            top: 10px;
+        }
+
+        .coin-text.left {
+            right: 10px;
+        }
+
+        .coin-text.right {
+            left: 10px;
+        }
 
         /* Toss Area */
         #toss-area,
@@ -511,7 +582,7 @@
             margin-top: 10px;
             text-align: center;
         }
-    
+
         .hexagrams-wrapper {
             display: flex;
             justify-content: center;
@@ -541,7 +612,10 @@
 
         #taiji-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background-color: rgba(20, 20, 18, 0.98);
             z-index: 2000;
             display: flex;
@@ -552,26 +626,59 @@
             pointer-events: none;
             transition: opacity 0.5s;
         }
+
         #taiji-overlay.active {
             opacity: 1;
             pointer-events: all;
         }
+
         .taiji-spin {
-            width: 150px; height: 150px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             background: linear-gradient(90deg, #fff 50%, #000 50%);
             position: relative;
         }
+
         .taiji-spin.animating {
             animation: spinTaiji 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
+
         .taiji-spin::before {
-            content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 15px #000 inset;
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 0 15px #000 inset;
         }
+
         .taiji-spin::after {
-            content: ""; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; border-radius: 50%; background: #000; box-shadow: 0 0 0 15px #fff inset;
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            background: #000;
+            box-shadow: 0 0 0 15px #fff inset;
         }
-        @keyframes spinTaiji { 0% { transform: rotate(0deg); } 100% { transform: rotate(720deg); } }
+
+        @keyframes spinTaiji {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(720deg);
+            }
+        }
 
         .taiji-text {
             color: var(--highlight-color);
@@ -583,32 +690,65 @@
             line-height: 1.8;
             font-family: 'Weibei TC', serif;
         }
+
         .taiji-text.animating {
             animation: fadeInOut 3s linear forwards;
         }
+
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateY(10px); }
-            20% { opacity: 1; transform: translateY(0); }
-            80% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-10px); }
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            80% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
         }
 
         .taiji-light {
             position: absolute;
-            width: 10px; height: 10px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background: #fff;
             box-shadow: 0 0 100px 50px #fff, 0 0 200px 100px var(--highlight-color);
             opacity: 0;
             pointer-events: none;
         }
+
         .taiji-light.flash {
             animation: lightFlash 1.5s ease-out forwards;
         }
+
         @keyframes lightFlash {
-            0% { opacity: 0; transform: scale(1); }
-            30% { opacity: 1; transform: scale(30); background: #fff; }
-            100% { opacity: 0; transform: scale(50); background: #fff; }
+            0% {
+                opacity: 0;
+                transform: scale(1);
+            }
+
+            30% {
+                opacity: 1;
+                transform: scale(30);
+                background: #fff;
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(50);
+                background: #fff;
+            }
         }
 
         .guide-text {
@@ -619,10 +759,11 @@
             border-radius: 4px;
             line-height: 1.6;
         }
+
         .guide-text strong {
             color: var(--highlight-color);
         }
-</style>
+    </style>
 </head>
 
 <body>
@@ -633,7 +774,7 @@
 
         <div id="setup-area" class="input-area">
             <textarea id="question" placeholder="請在此輸入您想占卜的問題..."></textarea>
-            
+
             <button class="btn" onclick="startMeditation()">開始起卦</button>
             <div class="rules-box">
                 <h4>問卦三守則</h4>
@@ -646,15 +787,15 @@
 
         </div>
 
-        
+
         <div id="toss-area">
             <div id="toss-status" class="toss-status"></div>
-            
-            
+
+
             <div style="text-align: center; margin-top: 20px;" id="toss-action-area">
                 <button class="btn" id="toss-btn" onclick="tossNextLine()">擲筊 (第 1 爻)</button>
             </div>
-            
+
             <div class="hexagrams-wrapper" id="hexagrams-wrapper">
 
                 <div class="hexagram-col" id="orig-hex-col">
@@ -692,7 +833,7 @@
         </div>
     </div>
 
-    
+
     <div id="meditation-screen">
         <div class="meditation-text">
             請閉上雙眼，靜心默念您的問題<br>
@@ -701,7 +842,8 @@
     </div>
 
     <div id="ritual-overlay">
-        <div id="coin-legend" style="position: absolute; top: 15%; width: 100%; text-align: center; color: #e6dfcd; font-size: 1.2rem; font-family: 'Weibei TC', serif; letter-spacing: 2px;">
+        <div id="coin-legend"
+            style="position: absolute; top: 15%; width: 100%; text-align: center; color: #e6dfcd; font-size: 1.2rem; font-family: 'Weibei TC', serif; letter-spacing: 2px;">
             四葉幸運草 = 陽 (3) &nbsp;&nbsp;|&nbsp;&nbsp; 乾隆通寶 = 陰 (2)
         </div>
         <div class="ritual-coins">
@@ -852,7 +994,7 @@
         }
 
         // 占卜邏輯
-        
+
         let tosses = [];
         let currentLineCount = 0;
         let questionText = "";
@@ -868,12 +1010,12 @@
             const medScreen = document.getElementById('meditation-screen');
             const countdownEl = document.getElementById('meditation-countdown');
             medScreen.classList.add('active');
-            
+
             playBowl(); // 播放頌缽聲引導靜心
 
             let timeLeft = 5;
             countdownEl.textContent = timeLeft;
-            
+
             const timer = setInterval(() => {
                 timeLeft--;
                 countdownEl.textContent = timeLeft;
@@ -896,11 +1038,11 @@
             document.getElementById('orig-hex-label').style.opacity = '0';
             document.getElementById('changed-hex-label').style.opacity = '0';
             document.getElementById('result-area').style.display = 'none';
-            
+
             document.getElementById('toss-btn').style.display = 'inline-block';
             document.getElementById('toss-btn').textContent = "擲筊 (第 1 爻)";
             document.getElementById('toss-btn').disabled = false;
-            
+
             tosses = [];
             currentLineCount = 0;
         }
@@ -908,14 +1050,14 @@
         function tossNextLine() {
             const btn = document.getElementById('toss-btn');
             btn.disabled = true;
-            
+
             const c1 = Math.random() < 0.5 ? 2 : 3;
             const c2 = Math.random() < 0.5 ? 2 : 3;
             const c3 = Math.random() < 0.5 ? 2 : 3;
             const sum = c1 + c2 + c3;
-            
+
             const faces = [c1, c2, c3].sort(() => Math.random() - 0.5);
-            
+
             const overlay = document.getElementById('ritual-overlay');
             overlay.classList.add('active');
 
@@ -963,7 +1105,7 @@
                     tosses.push(sum);
                     displaySingleLine(currentLineCount);
                     currentLineCount++;
-                    
+
                     if (currentLineCount < 6) {
                         btn.textContent = `擲筊 (第 ${currentLineCount + 1} 爻)`;
                         btn.disabled = false;
@@ -1005,7 +1147,7 @@
 
             const origData = getHexagramData(origBinary);
             const changedData = getHexagramData(changedBinary);
-            
+
             document.getElementById('orig-hex-label').style.opacity = '1';
 
             if (IChingCore.shouldShowZhiGuaAnimation(changingIndices)) {
@@ -1032,13 +1174,13 @@
             setTimeout(() => {
                 // 太極裂開亮光
                 light.classList.add('flash');
-                
+
                 setTimeout(() => {
                     overlay.classList.remove('active');
                     renderZhiGua(changedData, changingIndices);
                     renderResult(question, origData, changedData, changingIndices, true);
                 }, 700);
-                
+
             }, 3000);
         }
 
@@ -1047,22 +1189,22 @@
             document.getElementById('changed-hex-label').style.opacity = '1';
             const container = document.getElementById('changed-hexagram-lines');
             container.innerHTML = '';
-            
+
             // 從下往上繪製
             for (let i = 0; i < 6; i++) {
                 const s = tosses[i];
                 // 判斷之卦爻符號
                 let drawSymbol = IChingCore.getChangedLineSymbol(s);
                 let isChanged = changingIndices.includes(i);
-                
+
                 const lineDiv = document.createElement('div');
                 lineDiv.className = 'line-item fade-in';
                 if (isChanged) lineDiv.classList.add('zhi-gua-changed-line');
-                
+
                 lineDiv.style.opacity = 1;
                 lineDiv.style.transform = 'translateY(0)';
-                
-                const labelStr = `<div class="line-label">第${i+1}爻</div>`;
+
+                const labelStr = `<div class="line-label">第${i + 1}爻</div>`;
                 const changeMark = isChanged ? `<div class="change-mark">變</div>` : `<div class="no-change-mark"></div>`;
 
                 lineDiv.innerHTML = `${labelStr}<div class="line-symbol">${drawSymbol}</div>${changeMark}`;
